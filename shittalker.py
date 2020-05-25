@@ -2,13 +2,16 @@ import discord
 from optparse import OptionParser
 import configparser
 import bullshit
+from os import listdir
+from os.path import isfile, join
 
 client = discord.Client()
 
-knownTypes = ['t','v']
+knownTypes = ['t','v','p']
 chosenMessage = ''
 chosenChannel = int
 chosenChannelVoice = int
+chosenPic = ''
 chosenType = ''
 
 ##################################
@@ -37,7 +40,9 @@ parser.add_option("-v", type="int", dest="voiceChannel", default=-1,
 parser.add_option("-m", "--message", type="string", dest="preDefMessage", default="",
                   help="Write predefined message")
 parser.add_option("-t", "--type", type="string", dest="commandType", default="",
-                  help="Choose command type, either t (text command) or v (voice command)")
+                  help="Choose command type, either t (text command), v (voice command) or p (pic command)")
+parser.add_option("-p", "--picture", type="string", dest="picPath", default="",
+                  help="Choose picture from pics folder to send")
 (options, args) = parser.parse_args()
 
 ##################################
@@ -91,15 +96,20 @@ def listchannels(discordclient):
         for index, room in enumerate(allchannels[1]):
             print(index, room.name)
 
+    print("")
+
     return allchannels
+
+def listpics():
+    onlyfiles = [f for f in listdir("./pics") if isfile(join("./pics", f))]
+    return onlyfiles
 
 @client.event
 async def on_ready():
-    print("It's working in general")
 
     if not options.list:
         allchannels = listchannels(client)
-
+        allpics = listpics()
         #Define type
         if options.commandType == '':
             chosenType = gettype()
@@ -119,12 +129,27 @@ async def on_ready():
             else:
                 chosenChannelVoice = allchannels[1][options.voiceChannel]
 
+        #Define pic file
+        if chosenType == 'p':
+            if options.picPath == "":
+                print("Pics to choose from:")
+                print(allpics)
+                chosenPic = input()
+                while not isfile("./pics/"+chosenPic):
+                    print("No such file, try again")
+                    chosenPic = input()
+            else:
+                chosenPic = options.picPath
+                while not isfile("./pics/"+chosenPic):
+                    print("No such file, try again")
+                    chosenPic = input()
+
         #Define message
-        if options.preDefMessage == '':
+        if options.preDefMessage == '' and not chosenType == 'p':
             chosenMessage = getmessage()
         else:
             chosenMessage = options.preDefMessage
-        print(chosenType)
+
         if chosenType == 't':
             print(chosenChannel)
             print(chosenMessage)
@@ -135,6 +160,12 @@ async def on_ready():
             await bullshit.voicecommand(client,chosenChannel.id,chosenChannelVoice.id,chosenMessage)
             await client.close()
 
+        elif chosenType == 'p':
+            print(chosenPic)
+            await bullshit.piccommand(client,chosenChannel.id,chosenMessage,chosenPic)
+            await client.close()
+
+
     else:
         listchannels(client)
         await client.close()
@@ -143,5 +174,4 @@ async def on_ready():
 if options.list and options.preDefChannel != -1:
     print("Please don't use -l in conjunction with -c")
     exit()
-
 client.run(token)
