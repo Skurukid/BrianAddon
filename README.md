@@ -10,7 +10,7 @@ Oh, and don't forget to fill out literally only thing in config file. You know w
 ## Voice commands
 Yeah, well, that was supposed to run Groovy commands, but according to their support team, there's no way it will take commands from other bots, so it's not working currently. Maybe someday. 
 ## Help
-Options:
+```Options:
   -h, --help            show this help message and exit
   -l, --list            Print list of channels
   -c PREDEFCHANNEL, --channel=PREDEFCHANNEL
@@ -23,4 +23,4 @@ Options:
                         Write predefined message
   -t COMMANDTYPE, --type=COMMANDTYPE
                         Choose command type, either t (text command) or v
-                        (voice command)
+                        (voice command)````
